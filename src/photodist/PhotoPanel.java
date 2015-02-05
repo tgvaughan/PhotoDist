@@ -85,7 +85,8 @@ public class PhotoPanel extends JPanel {
 
             @Override
             public void mouseMoved(MouseEvent e) {
-                repaint();
+                if (geom.getCurrentPath() != null)
+                    repaint();
             }
         });
     }
