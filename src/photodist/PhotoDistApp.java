@@ -67,6 +67,17 @@ public class PhotoDistApp extends JFrame {
 
         fileMenu.addSeparator();
 
+        JMenuItem fileReset = new JMenuItem("Clear geometry", 'c');
+        fileReset.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                geom.reset();
+            }
+        });
+        fileMenu.add(fileReset);
+
+        fileMenu.addSeparator();
+
         JMenuItem fileExit = new JMenuItem("Exit", 'x');
         fileExit.addActionListener(new ActionListener() {
             @Override

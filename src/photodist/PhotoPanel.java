@@ -21,9 +21,11 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 import java.util.List;
@@ -64,29 +66,29 @@ public class PhotoPanel extends JPanel {
                 }
 
                 Geometry.PointPair newPointPair = new Geometry.PointPair();
-                newPointPair.x[pidx] = e.getX()*image.getWidth()/getWidth();
+                newPointPair.x[pidx] = getImageX(e.getX());
                 newPointPair.x[opidx] = newPointPair.x[pidx];
-                newPointPair.y[pidx] = e.getY()*image.getHeight()/getHeight();
+                newPointPair.y[pidx] = getImageY(e.getY());
                 newPointPair.y[opidx] = newPointPair.y[pidx];
                 geom.addPoint(newPointPair);
-
-                System.out.println(String.format("(%d,%d)", e.getX(), e.getY()));
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
                 repaint();
             }
-
-            
         });
 
         addMouseMotionListener(new MouseMotionAdapter() {
 
             @Override
             public void mouseMoved(MouseEvent e) {
-                if (geom.getCurrentPath() != null)
+                
+                if (image != null
+                        && (geom.updateFocusedPoint(getImageX(e.getX()), getImageY(e.getY()), pidx)
+                        || geom.getCurrentPath() != null))
                     repaint();
+
             }
         });
     }
@@ -94,6 +96,9 @@ public class PhotoPanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         Graphics2D g2d = (Graphics2D)g;
+        RenderingHints rh = new RenderingHints(
+                RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
 
         if (image == null) {
             super.paintComponent(g);
@@ -102,19 +107,7 @@ public class PhotoPanel extends JPanel {
 
         g2d.drawImage(image, 0, 0, getWidth(), getHeight(), null);
 
-        g2d.setColor(Color.RED);
         g2d.setStroke(new BasicStroke(3));
-        for (List<Geometry.PointPair> path : geom.getPaths()) {
-            for (int i=1; i<path.size(); i++) {
-                g2d.drawLine(path.get(i-1).x[pidx]*getWidth()/image.getWidth(),
-                    path.get(i-1).y[pidx]*getHeight()/image.getHeight(),
-                    path.get(i).x[pidx]*getWidth()/image.getWidth(),
-                    path.get(i).y[pidx]*getHeight()/image.getHeight());
-//                g2d.fill(new Ellipse2D.Double(pair.x[pidx]*getWidth()/image.getWidth()-2,
-//                    pair.y[pidx]*getHeight()/image.getHeight()-2, 4, 4));
-            }
-        }
-
         g2d.setColor(Color.YELLOW);
         Point mousePosition = getMousePosition();
         if (geom.getCurrentPath() != null
@@ -124,9 +117,41 @@ public class PhotoPanel extends JPanel {
             && mousePosition.y>=0 && mousePosition.y<getHeight()) {
             Geometry.PointPair lastPair = geom.getCurrentPath().get(geom.getCurrentPath().size()-1);
             g2d.draw(new Line2D.Double(mousePosition.x, mousePosition.y,
-                lastPair.x[pidx]*getWidth()/image.getWidth(),
-                lastPair.y[pidx]*getHeight()/image.getHeight()));
+                getPanelX(lastPair.x[pidx]),
+                getPanelY(lastPair.y[pidx])));
         }
+
+        for (List<Geometry.PointPair> path : geom.getPaths()) {
+            for (int i=1; i<path.size(); i++) {
+                g2d.setStroke(new BasicStroke(3));
+                g2d.setColor(Color.WHITE);
+                g2d.drawLine(getPanelX(path.get(i-1).x[pidx]),
+                        getPanelY(path.get(i-1).y[pidx]),
+                        getPanelX(path.get(i).x[pidx]),
+                        getPanelY(path.get(i).y[pidx]));
+                g2d.setStroke(new BasicStroke(1));
+                g2d.setColor(Color.BLUE);
+                g2d.drawLine(getPanelX(path.get(i-1).x[pidx]),
+                        getPanelY(path.get(i-1).y[pidx]),
+                        getPanelX(path.get(i).x[pidx]),
+                        getPanelY(path.get(i).y[pidx]));
+
+            }
+            for (Geometry.PointPair pair : path) {
+                int rad;
+                if (pair == geom.getFocusedPoint())  {
+                    g2d.setColor(Color.CYAN);
+                    rad = 5;
+                } else {
+                    g2d.setColor(Color.BLUE);
+                    rad = 3;
+                }
+
+                g2d.fill(new Ellipse2D.Double(getPanelX(pair.x[pidx]) - rad,
+                        getPanelY(pair.y[pidx]) - rad, 2*rad, 2*rad));
+            }
+        }
+
     }
 
     public BufferedImage getImage() {
@@ -136,4 +161,21 @@ public class PhotoPanel extends JPanel {
     public void setImage(BufferedImage image) {
         this.image = image;
     }
+
+    public int getImageX(int panelX) {
+        return panelX*image.getWidth()/getWidth();
+    }
+
+    public int getPanelX(int imageX) {
+        return imageX*getWidth()/image.getWidth();
+    }
+
+    public int getImageY(int panelY) {
+        return panelY*image.getHeight()/getHeight();
+    }
+
+    public int getPanelY(int imageY) {
+        return imageY*getHeight()/image.getHeight();
+    }
+
 }

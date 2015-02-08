@@ -41,6 +41,8 @@ public class Geometry {
 
     List<PointPair> currentPath;
 
+    PointPair focusedPoint;
+
     public Geometry() {
         paths = new ArrayList<>();
         listeners = new ArrayList<>();
@@ -60,6 +62,15 @@ public class Geometry {
         notifyListeners();
     }
 
+    /**
+     * Clear all paths and reset parameters to defaults.
+     */
+    public void reset() {
+        currentPath = null;
+        paths.clear();
+        notifyListeners();
+    }
+
     public List<List<PointPair>> getPaths() {
         return paths;
     }
@@ -68,7 +79,14 @@ public class Geometry {
         return currentPath;
     }
 
+    public PointPair getFocusedPoint() {
+        return focusedPoint;
+    }
+
     public void endPath() {
+        if (currentPath.size()<2)
+            paths.remove(currentPath);
+
         currentPath = null;
         notifyListeners();
     }
@@ -98,4 +116,37 @@ public class Geometry {
         fovV = fov;
     }
 
+    /**
+     * Compute Euclidean distance between (x,y) and point pidx of PointPair.
+     * 
+     * @param x
+     * @param y
+     * @param pidx
+     * @param pair
+     * @return 
+     */
+    public double euDist(int x, int y, int pidx, PointPair pair) {
+        double res = Math.sqrt(Math.pow(x-pair.x[pidx],2) + Math.pow(y-pair.y[pidx],2));
+        return res;
+    }
+
+    public boolean updateFocusedPoint(int x, int y, int pidx) {
+        PointPair newFP = null;
+        for (List<PointPair> path : getPaths()) {
+            for (PointPair pair : path) {
+                if (euDist(x,y,pidx, pair)<50) {
+                    if (newFP == null
+                            || (euDist(x,y,pidx, pair) < euDist(x,y,pidx, newFP))) {
+                            newFP = pair;
+                    }
+                }
+            }
+        }
+
+        if (newFP != focusedPoint) {
+            focusedPoint = newFP;
+            return true;
+        } else
+            return false;
+    }
 }
