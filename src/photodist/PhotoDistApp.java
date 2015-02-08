@@ -118,7 +118,7 @@ public class PhotoDistApp extends JFrame {
         cp.add(mainPanel, BorderLayout.CENTER);
 
         JPanel paramPanel = new JPanel();
-        paramPanel.add(new JLabel("Horiz. FOV:"));
+        paramPanel.add(new JLabel("Horiz. FOV (deg):"));
         JSpinner hFOVspinner = new JSpinner(
                 new SpinnerNumberModel(geom.getHorizontalFOV(), 1, 90, 1));
         hFOVspinner.addChangeListener(new ChangeListener() {
@@ -130,7 +130,7 @@ public class PhotoDistApp extends JFrame {
         });
         paramPanel.add(hFOVspinner);
 
-        paramPanel.add(new JLabel("  Vert. FOV:"));
+        paramPanel.add(new JLabel("  Vert. FOV (deg):"));
         JSpinner vFOVspinner = new JSpinner(
                 new SpinnerNumberModel(geom.getVeritcalFOV(), 1, 90, 1));
         vFOVspinner.addChangeListener(new ChangeListener() {
@@ -142,7 +142,7 @@ public class PhotoDistApp extends JFrame {
         });
         paramPanel.add(vFOVspinner);
 
-        paramPanel.add(new JLabel("  Sep.:"));
+        paramPanel.add(new JLabel("  Sep. (m):"));
         JSpinner distSpinner = new JSpinner(
                 new SpinnerNumberModel(geom.getSeparation(), 0.05, 10, 0.1));
         distSpinner.addChangeListener(new ChangeListener() {

@@ -142,7 +142,7 @@ public class Geometry {
         return res;
     }
 
-    public boolean updateFocusedPoint(int x, int y, int pidx) {
+    public void updateFocusedPoint(int x, int y, int pidx) {
         PointPair newFP = null;
         for (List<PointPair> path : getPaths()) {
             for (PointPair pair : path) {
@@ -157,8 +157,7 @@ public class Geometry {
 
         if (newFP != focusedPoint) {
             focusedPoint = newFP;
-            return true;
-        } else
-            return false;
+            notifyListeners();
+        }
     }
 }

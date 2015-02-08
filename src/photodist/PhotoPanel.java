@@ -101,10 +101,10 @@ public class PhotoPanel extends JPanel {
                 if (getImage() == null)
                     return;
 
-                if (geom.updateFocusedPoint(getImageX(e.getX()), getImageY(e.getY()), pidx)
-                        || geom.getCurrentPath() != null)
-                    repaint();
+                geom.updateFocusedPoint(getImageX(e.getX()), getImageY(e.getY()), pidx);
 
+                if (geom.getCurrentPath() != null)
+                    repaint();
             }
         });
     }
