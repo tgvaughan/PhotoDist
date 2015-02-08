@@ -46,6 +46,10 @@ public class Geometry {
     public Geometry() {
         paths = new ArrayList<>();
         listeners = new ArrayList<>();
+
+        fovH = 15;
+        fovV = 15;
+        sep = 0.3;
     }
 
     public void addListener(GeometryListener gl) {
@@ -112,8 +116,16 @@ public class Geometry {
         fovH = fov;
     }
 
+    public double getHorizontalFOV() {
+        return fovH;
+    }
+
     public void setVerticalFOV(double fov) {
         fovV = fov;
+    }
+
+    public double getVeritcalFOV() {
+        return fovV;
     }
 
     /**

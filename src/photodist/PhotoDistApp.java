@@ -25,22 +25,22 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JSplitPane;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
-import javax.swing.border.BevelBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
@@ -50,7 +50,7 @@ public class PhotoDistApp extends JFrame {
 
     PhotoPanel leftPhotoPanel, rightPhotoPanel;
 
-    Geometry geom = new Geometry();
+    final Geometry geom = new Geometry();
 
     public PhotoDistApp() throws HeadlessException {
         setTitle("PhotoDist");
@@ -94,33 +94,71 @@ public class PhotoDistApp extends JFrame {
         leftPanel.setBorder(new TitledBorder("Left"));
         leftPhotoPanel = new PhotoPanel(geom, 0);
         leftPanel.add(leftPhotoPanel, BorderLayout.CENTER);
+        JPanel leftButtonPanel = new JPanel();
         JButton leftLoadButton = new JButton("Choose left image...");
         leftLoadButton.addActionListener(new LoadButtonActionListener(leftPhotoPanel));
+        leftButtonPanel.add(leftLoadButton);
+        leftPanel.add(leftButtonPanel, BorderLayout.PAGE_END);
         leftPanel.setPreferredSize(new Dimension(320, 480));
-        leftPanel.add(leftLoadButton, BorderLayout.PAGE_END);
 
         final JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.setBorder(new TitledBorder("Right"));
         rightPhotoPanel = new PhotoPanel(geom, 1);
         rightPanel.add(rightPhotoPanel, BorderLayout.CENTER);
+        JPanel rightButtonPanel = new JPanel();
         JButton rightLoadButton = new JButton("Choose right image...");
         rightLoadButton.addActionListener(new LoadButtonActionListener(rightPhotoPanel));
+        rightButtonPanel.add(rightLoadButton);
+        rightPanel.add(rightButtonPanel, BorderLayout.PAGE_END);
         leftPanel.setPreferredSize(new Dimension(320, 480));
-        rightPanel.add(rightLoadButton, BorderLayout.PAGE_END);
-
 
         JPanel mainPanel = new JPanel(new GridLayout(1, 2));
         mainPanel.add(leftPanel);
         mainPanel.add(rightPanel);
         cp.add(mainPanel, BorderLayout.CENTER);
 
+        JPanel paramPanel = new JPanel();
+        paramPanel.add(new JLabel("Horiz. FOV:"));
+        JSpinner hFOVspinner = new JSpinner(
+                new SpinnerNumberModel(geom.getHorizontalFOV(), 1, 90, 1));
+        hFOVspinner.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                JSpinner spinner = (JSpinner) e.getSource();
+                geom.setHorizontalFOV((double)spinner.getValue());
+            }
+        });
+        paramPanel.add(hFOVspinner);
+
+        paramPanel.add(new JLabel("  Vert. FOV:"));
+        JSpinner vFOVspinner = new JSpinner(
+                new SpinnerNumberModel(geom.getVeritcalFOV(), 1, 90, 1));
+        vFOVspinner.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                JSpinner spinner = (JSpinner) e.getSource();
+                geom.setVerticalFOV((double)spinner.getValue());
+            }
+        });
+        paramPanel.add(vFOVspinner);
+
+        paramPanel.add(new JLabel("  Sep.:"));
+        JSpinner distSpinner = new JSpinner(
+                new SpinnerNumberModel(geom.getSeparation(), 0.05, 10, 0.1));
+        distSpinner.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                JSpinner spinner = (JSpinner) e.getSource();
+                geom.setSeparation((double)spinner.getValue());
+            }
+        });
+        paramPanel.add(distSpinner);
+        cp.add(paramPanel, BorderLayout.PAGE_END);
+
         pack();
         
     }
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) {
 
         SwingUtilities.invokeLater(new Runnable() {
@@ -129,7 +167,6 @@ public class PhotoDistApp extends JFrame {
                 new PhotoDistApp().setVisible(true);
             }
         });
-        // TODO code application logic here
     }
 
     private class LoadButtonActionListener implements ActionListener {
