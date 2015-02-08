@@ -60,7 +60,8 @@ public class PhotoPanel extends JPanel {
                 if (getImage() == null)
                     return;
 
-                if (e.getButton() == MouseEvent.BUTTON3) {
+                if (geom.getCurrentPath() != null &&
+                        e.getButton() == MouseEvent.BUTTON3) {
                     geom.endPath();
                     return;
                 }
@@ -82,11 +83,27 @@ public class PhotoPanel extends JPanel {
         addMouseMotionListener(new MouseMotionAdapter() {
 
             @Override
+            public void mouseDragged(MouseEvent e) {
+                if (getImage() == null || geom.getCurrentPath() != null)
+                    return;
+
+                int mask = MouseEvent.CTRL_DOWN_MASK | MouseEvent.BUTTON1_DOWN_MASK;
+                System.out.println(e.getModifiersEx() + " " + mask);
+                if ((e.getModifiersEx() & mask) == mask) {
+                    geom.focusedPoint.x[pidx] = getImageX(e.getX());
+                    geom.focusedPoint.y[pidx] = getImageY(e.getY());
+                    repaint();
+                }
+            }
+
+            @Override
             public void mouseMoved(MouseEvent e) {
-                
-                if (image != null
-                        && (geom.updateFocusedPoint(getImageX(e.getX()), getImageY(e.getY()), pidx)
-                        || geom.getCurrentPath() != null))
+
+                if (getImage() == null)
+                    return;
+
+                if (geom.updateFocusedPoint(getImageX(e.getX()), getImageY(e.getY()), pidx)
+                        || geom.getCurrentPath() != null)
                     repaint();
 
             }
