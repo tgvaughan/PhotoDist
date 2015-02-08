@@ -90,7 +90,7 @@ public class PhotoPanel extends JPanel {
                 int mask = MouseEvent.CTRL_DOWN_MASK | MouseEvent.BUTTON1_DOWN_MASK;
                 if ((e.getModifiersEx() & mask) == mask) {
                     geom.focusedPoint.x[pidx] = getImageX(e.getX());
-                    geom.focusedPoint.y[pidx] = getImageY(e.getY());
+                    //geom.focusedPoint.y[pidx] = getImageY(e.getY());
                     repaint();
                 }
             }

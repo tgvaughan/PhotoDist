@@ -16,6 +16,7 @@
  */
 package photodist;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +30,7 @@ public class Geometry {
 
     public static class PointPair {
         int[] x, y;
+        double trueX, trueY, trueZ;
 
         public PointPair() {
             x = new int[2];
@@ -158,6 +160,38 @@ public class Geometry {
         if (newFP != focusedPoint) {
             focusedPoint = newFP;
             notifyListeners();
+        }
+    }
+
+    /**
+     * Use point pairs to guestimate 3D positions.
+     * 
+     * @param imageWidth
+     * @param imageHeight
+     */
+    public void triangulate(int imageWidth, int imageHeight) {
+        double thetaFactor = fovH/(2*imageWidth)*Math.PI/180;
+        double phiFactor = fovV/(2*imageHeight)*Math.PI/180;
+        for (List<PointPair> path : getPaths()) {
+            for (PointPair pair : path) {
+                double tantheta0 = Math.tan((pair.x[0]-0.5*imageWidth)*thetaFactor);
+                double tantheta1 = Math.tan((pair.x[1]-0.5*imageWidth)*thetaFactor);
+                double tanphi = Math.tan((pair.y[0]-0.5*imageHeight)*phiFactor);
+
+                pair.trueX = sep/(tantheta1 - tantheta0) + 0.5*sep;
+                pair.trueY = pair.trueX*tantheta1;
+                pair.trueZ = pair.trueY*tanphi;
+            }
+        }
+    }
+
+    public void export3DGeometry(PrintStream pstream) {
+        pstream.println("x y z path");
+        for (int i=0; i<paths.size(); i++) {
+            for (PointPair pair : paths.get(i)) {
+                pstream.format("%g %g %g %d\n",
+                    pair.trueX, pair.trueY, pair.trueZ, i);
+            }
         }
     }
 }

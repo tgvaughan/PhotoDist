@@ -24,7 +24,13 @@ import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -48,7 +54,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  */
 public class PhotoDistApp extends JFrame {
 
-    PhotoPanel leftPhotoPanel, rightPhotoPanel;
+    final PhotoPanel leftPhotoPanel, rightPhotoPanel;
+    final JMenuItem fileSave;
 
     final Geometry geom = new Geometry();
 
@@ -62,7 +69,34 @@ public class PhotoDistApp extends JFrame {
         JMenu fileMenu = new JMenu("File");
         fileMenu.setMnemonic('f');
 
-        JMenuItem fileSave = new JMenuItem("Save geometry...", 's');
+        fileSave = new JMenuItem("Save geometry...", 's');
+        fileSave.setEnabled(false);
+        fileSave.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (leftPhotoPanel.getImage().getWidth() != rightPhotoPanel.getImage().getWidth()
+                    || leftPhotoPanel.getImage().getHeight() != rightPhotoPanel.getImage().getHeight()) {
+                    JOptionPane.showMessageDialog(rootPane,
+                        "Left and right image dimensions are different!",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                JFileChooser fc = new JFileChooser();
+                fc.setSelectedFile(new File("geometry.txt"));
+                if (fc.showSaveDialog(rootPane) == JFileChooser.APPROVE_OPTION) {
+                    geom.triangulate(leftPhotoPanel.getImage().getWidth(),
+                        leftPhotoPanel.getImage().getHeight());
+                    try {
+                        geom.export3DGeometry(new PrintStream(fc.getSelectedFile()));
+                    } catch (FileNotFoundException ex) {
+                        JOptionPane.showMessageDialog(rootPane,
+                            "Error writing to selected file.", "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
         fileMenu.add(fileSave);
 
         fileMenu.addSeparator();
@@ -188,6 +222,11 @@ public class PhotoDistApp extends JFrame {
                     BufferedImage image = ImageIO.read(fc.getSelectedFile());
                     photoPanel.setImage(image);
                     photoPanel.repaint();
+
+                    if (leftPhotoPanel.getImage() != null
+                        && rightPhotoPanel.getImage() != null)
+                        fileSave.setEnabled(true);
+
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(getContentPane(),
                         "Error loading image from file `"
